@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "oligocoil"
+version = "1.0.0"
+description = "Machine learning framework for predicting coiled-coil oligomeric states using register-specific physicochemical features."
+readme = "README.md"
+requires-python = ">=3.7"
+dependencies = [
+    "numpy",
+    "pandas",
+    "scikit-learn",
+    "openpyxl",
+    "xgboost",
+    "lightgbm",
+    "imbalanced-learn",
+    "joblib"
+]
+
+[project.scripts]
+# This will map the 'oligocoil' terminal command to the cli.py file
+oligocoil = "oligocoil.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["oligocoil", "oligocoil.*"]
+
+[tool.setuptools.package-data]
+# This ensures your .pkl models and .json ANOVA list will be bundled into the package!
+oligocoil = ["weights/*.pkl", "weights/*.json"]
