@@ -48,96 +48,51 @@ Open your Anaconda Prompt (or terminal) and clone the repository:
 
 
 
-git clone https://github.com/YourUsername/CCOligoPred-Predictor.git
+git clone https://github.com/sirfkisalay/CCOligoPred.git
 
-cd CCOligoPred-Predictor
-
-
+cd CCOligoPred
 
 Step 2: Create and activate a Conda virtual environment
 
 Create a fresh environment with a compatible Python version (e.g., Python 3.11):
 
-
-
 conda create -n ccoligopred\_env python=3.11 -y
 
 conda activate ccoligopred\_env
-
-
 
 Step 3: Install the CCOligoPred package
 
 Install the tool in editable mode. This will automatically resolve and install all required dependencies (Pandas, Scikit-learn, XGBoost, LightGBM, Imbalanced-learn, etc.):
 
-
-
 pip install -e .
-
 Step 4: Add the environment to Jupyter Notebook (Optional but Recommended)
-
 If you plan to run the tool inside Jupyter Notebook, link your new environment to Jupyter:
 
-
-
 pip install ipykernel
-
 python -m ipykernel install --user --name=ccoligopred\_env --display-name "Python (CCOligoPred)"
 
-
-
 Note: When you open Jupyter Notebook, make sure to select Python (CCOligoPred) from the Kernel menu.
-
 Usage Guide (Jupyter Notebook)
 
-
-
 CCOligoPred is designed to be easily executed directly within Jupyter Notebook cells using the ! command-line prefix.
-
 Input Data Format
-
 Before running the commands, ensure your input Excel file contains at least two specific columns:
-
 •	Sequence: The raw amino acid sequence of the Coiled-Coil Domain.
-
 •	Register: The corresponding heptad registers annotation (e.g., abcdefg).
-
 (A sample file Oligopred\_trial\_test.xlsx is provided in the datasets/ folder).
 
-
-
 🟢 Command 1: Full Prediction Pipeline
-
 To run both the multiclass (PD, APD, TRI, TET) and binary (TRI vs. Non-TRI) predictors, use the predict sub-command:
-
-
-
-\#Run this inside a Jupyter Notebook cell
-
-Python
+#Run this inside a Jupyter Notebook cell
 
 !ccoligopred predict -i datasets/Oligopred\_trial\_test.xlsx -o ccoligopred\_full\_results.xlsx
-
-
-
 Output: Generates an Excel file containing your original sequences alongside the multiclass predictions, binary predictions, and confidence probabilities.
 
 🔵 Command 2: Standalone RBF Extraction Only
-
-
-
 If you only want to calculate the 2041-dimensional Register-Based Features (RBF) without running the machine learning models, use the rbf sub-command:
-
-\# Run this inside a Jupyter Notebook cell
-
-
-
-Python
+# Run this inside a Jupyter Notebook cell
 
 !ccoligopred rbf -i datasets/Oligopred\_trial\_test.xlsx -o standalone\_rbf\_matrix.xlsx
-
-
-
 Output: Bypasses the classifiers and strictly generates an Excel file containing your sequences mapped to their 2041 mathematical structural features.
 
 
