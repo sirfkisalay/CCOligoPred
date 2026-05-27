@@ -9,14 +9,14 @@ description = "Machine learning framework for predicting coiled-coil oligomeric 
 readme = "README.md"
 requires-python = ">=3.7"
 dependencies = [
-    "numpy",
-    "pandas",
-    "scikit-learn",
-    "openpyxl",
-    "xgboost",
-    "lightgbm",
-    "imbalanced-learn",
-    "joblib"
+    "numpy==1.26.4",
+    "pandas==2.3.0",
+    "scikit-learn==1.5.2",
+    "openpyxl==3.1.5",
+    "xgboost==3.0.5",
+    "lightgbm==4.5.0",
+    "imbalanced-learn==0.12.4",
+    "joblib==1.4.2"
 ]
 
 [project.scripts]
