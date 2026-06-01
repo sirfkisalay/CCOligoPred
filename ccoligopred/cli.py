@@ -104,8 +104,8 @@ def main():
             print("[*] Running Binary Classifier (Trimer vs Non-Trimer)...")
             binary_preds, binary_probs = predict_binary(feature_matrix)
             
-            # 4. Multiclass Prediction
-            print("[*] Running Multiclass Predictor (PD, APD, TRI, TETRA)...")
+            # 4. Multiclass Prediction (UPDATED Nomenclature to TET)
+            print("[*] Running Multiclass Predictor (PD, APD, TRI, TET)...")
             multiclass_preds = predict_multiclass(feature_matrix)
             
             # 5. Save Output
