@@ -16,16 +16,12 @@ MODEL_PATH = os.path.join(WEIGHTS_DIR, 'ccoligopred_multiclass_model.pkl')
 FEATURES_PATH = os.path.join(WEIGHTS_DIR, 'Multiclass_GB_Importance_Features_mean_Raw.json')
 
 # CLASS_NAMES mapped to LabelEncoder (0: PD, 1: APD, 2: TRI, 3: TET)
-# Note: Changed 'TETRA' to 'TET' to match the updated scientific nomenclature from the manuscript
 CLASS_NAMES = ['PD', 'APD', 'TRI', 'TET']
 
-# NEW: OOF-Optimized Biophysical Thresholds for Margin Scaling
-THRESHOLDS = np.array([0.35, 0.40, 0.45, 0.15])
-
-def predict_multiclass(feature_df: pd.DataFrame) -> list:
+def predict_multiclass(feature_df: pd.DataFrame):
     """
-    Filters features using the Multi_GB list, applies margin-scaled 
-    thresholds to XGBoost probabilities, and predicts multiclass states.
+    Filters features using the Multi_GB list, predicts raw standard classes,
+    and calculates the full probability matrix to be sent to the CLI for threshold optimization.
     """
     
     # 1. Load Model and Features Safely
@@ -47,12 +43,12 @@ def predict_multiclass(feature_df: pd.DataFrame) -> list:
         
     X_filtered = feature_df[gb_features]
     
-    # 3. Predict Raw Soft Probabilities
+    # 3. Predict Raw Hard Predictions (Standard XGBoost Argmax)
+    raw_preds_numeric = model.predict(X_filtered)
+    raw_preds_string = [CLASS_NAMES[p] for p in raw_preds_numeric]
+    
+    # 4. Predict Raw Soft Probabilities (Required for cli.py custom thresholds)
     raw_probs = model.predict_proba(X_filtered)
     
-    # 4. Apply OOF Thresholds via Margin Scaling (Probability / Threshold)
-    scaled_probs = raw_probs / THRESHOLDS
-    preds = np.argmax(scaled_probs, axis=1)
-    
-    # 5. Map numeric predictions to string labels
-    return [CLASS_NAMES[p] for p in preds]
+    # 5. Return BOTH so cli.py can unpack them properly
+    return raw_preds_string, raw_probs

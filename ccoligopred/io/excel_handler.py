@@ -1,56 +1,47 @@
 import pandas as pd
-import os
 
-def load_sequence_data(file_path: str) -> pd.DataFrame:
+def load_sequence_data(input_path):
     """
-    Loads user data, auto-detects CSV vs Excel formats, and auto-fixes missing headers.
+    Loads sequence and register data from an Excel file.
+    Ensures that the necessary columns exist.
     """
-    if not os.path.exists(file_path):
-        raise FileNotFoundError(f"[ERROR] Cannot find the input file at: {file_path}")
-        
-    # 1. Auto-detect format (Try Excel first, fallback to CSV)
     try:
-        df = pd.read_excel(file_path, engine='openpyxl')
-    except Exception:
-        try:
-            # If Excel fails, it's likely a CSV saved with an .xlsx extension
-            df = pd.read_csv(file_path)
-        except Exception as e:
-            raise ValueError(f"[ERROR] Failed to read the file as Excel or CSV. Error: {str(e)}")
-            
-    # 2. Auto-fix missing headers
-    lower_cols = [str(c).lower() for c in df.columns]
-    
-    if 'sequence' not in lower_cols or 'register' not in lower_cols:
-        # If it exactly has 2 columns but wrong names, assume headers are missing
-        if len(df.columns) == 2:
-            print("    -> [WARNING] 'Sequence' and 'Register' headers not found. Auto-assigning them to columns 1 and 2.")
-            # Re-read without headers so we don't lose the first sequence!
-            try:
-                df = pd.read_excel(file_path, engine='openpyxl', header=None)
-            except:
-                df = pd.read_csv(file_path, header=None)
-            df.columns = ['Sequence', 'Register']
-        else:
-            raise KeyError(f"[ERROR] Input file must contain 'Sequence' and 'Register' columns. Found: {list(df.columns)}")
-    else:
-        # Ensure exact capitalization for the rest of the pipeline
-        col_map = {c: 'Sequence' for c in df.columns if str(c).lower() == 'sequence'}
-        col_map.update({c: 'Register' for c in df.columns if str(c).lower() == 'register'})
-        df = df.rename(columns=col_map)
+        df = pd.read_excel(input_path)
         
-    return df
+        # Strip hidden spaces from headers just to be safe
+        df.columns = df.columns.str.strip()
+        
+        # Check for required columns
+        if 'Sequence' not in df.columns or 'Register' not in df.columns:
+            raise ValueError("Input Excel file must contain exactly 'Sequence' and 'Register' columns.")
+            
+        return df
+    except Exception as e:
+        raise RuntimeError(f"Failed to load input file {input_path}: {str(e)}")
 
-def save_predictions(original_df: pd.DataFrame, multiclass_preds: list, binary_preds: list, binary_probs: list, output_path: str):
+
+def save_predictions(df, multi_classes, multi_confidences, raw_multi_probs, binary_preds, binary_probs, output_path):
     """
-    Appends the model predictions to the original dataframe and saves to a true Excel file.
+    Appends multiclass predictions, optimized confidences, raw probabilities, 
+    and binary predictions to the original dataframe and saves it to Excel.
     """
-    result_df = original_df.copy()
+    # Work on a copy to prevent fragmentation warnings
+    out_df = df.copy()
     
-    # Append the new prediction columns
-    result_df['Multiclass_Prediction'] = multiclass_preds
-    result_df['TRI_Binary_Prediction'] = binary_preds
-    result_df['TRI_Probability'] = binary_probs
+    # 1. Final Multiclass Predictions & Confidence (After Threshold Optimization)
+    out_df['Multiclass_Prediction'] = multi_classes
+    out_df['Multiclass_Confidence_Score'] = multi_confidences
     
-    # Always save the output as a true .xlsx file
-    result_df.to_excel(output_path, index=False, engine='openpyxl')
+    # 2. Raw Multiclass Probabilities (Directly from XGBoost)
+    out_df['PD_Prob'] = raw_multi_probs[:, 0]
+    out_df['APD_Prob'] = raw_multi_probs[:, 1]
+    out_df['TRI_Prob'] = raw_multi_probs[:, 2]
+    out_df['TET_Prob'] = raw_multi_probs[:, 3]
+    
+    # 3. Binary Predictions & Confidence
+    out_df['TRI_Binary_Prediction'] = binary_preds
+    out_df['TRI_Binary_Confidence'] = binary_probs
+    
+    # Save the compiled dataframe
+    out_df.to_excel(output_path, index=False)
+    print(f"Successfully saved {len(out_df)} predictions to {output_path}")
